@@ -1,0 +1,514 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat:300,400,600,700");
+
+/* =========================================================
+   1. GLOBALES Y RESET
+   ========================================================= */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  background: #020108; /* Seguridad oscura para WebGL */
+  margin: 0;
+  padding: 0;
+  font-family: "Montserrat", sans-serif;
+  color: #fff;
+}
+
+:root {
+  --cosmic-orange: #f39041;
+  --cosmic-orange-soft: #ffb469;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(12px);
+}
+
+/* =========================================================
+   2. PANTALLA DE CARGA (PRELOADER)
+   ========================================================= */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #020108;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 1s ease;
+}
+
+.loader-content {
+  text-align: center;
+  width: 300px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--cosmic-orange);
+  transition: width 0.1s linear;
+}
+
+/* =========================================================
+   3. LOGO Y NAVEGACIÓN SUPERIOR
+   ========================================================= */
+.logo {
+  color: white;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  text-align: center;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 100;
+  letter-spacing: 4px;
+  z-index: 50;
+}
+
+.logo span {
+  font-size: 12px;
+  color: var(--cosmic-orange);
+  display: block;
+}
+
+.top-nav {
+  position: fixed;
+  top: 28px;
+  right: 32px;
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+.nav-btn {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 400;
+  padding: 10px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+
+.nav-btn--ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+.nav-btn--ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.12);
+}
+
+.nav-btn--cosmic {
+  color: #fff;
+  border: 1px solid rgba(243, 144, 65, 0.6);
+  background: linear-gradient(135deg, var(--cosmic-orange) 0%, #d8651b 100%);
+  box-shadow: 0 6px 22px rgba(243, 144, 65, 0.35);
+}
+.nav-btn--cosmic:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(243, 144, 65, 0.55), 0 0 0 3px rgba(243, 144, 65, 0.18);
+}
+
+/* =========================================================
+   4. MENÚ LATERAL DE PLANETAS
+   ========================================================= */
+input[type=radio][name=planet] {
+  appearance: none;
+  display: none;
+}
+
+.planet-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 50;
+}
+
+label.menu {
+  color: white;
+  display: block;
+  position: absolute;
+  cursor: pointer;
+  left: 90px;
+  z-index: 2;
+}
+
+label.menu:after {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-radius: 60px;
+  content: "";
+  z-index: 2;
+  position: absolute;
+  top: -4px;
+  left: -4px;
+}
+
+label.menu:hover h2,
+label.menu:hover h3 {
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(243, 144, 65, 0.6);
+}
+
+label.menu .preview {
+  width: 30px;
+  height: 30px;
+  float: left;
+  background-size: auto 100% !important;
+  position: absolute;
+  border-radius: 100px;
+  box-shadow: 0 -13px 10px 2px black inset;
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+label.menu:hover .preview {
+  box-shadow: 0 -13px 10px 2px black inset, 0 0 14px 2px rgba(243, 144, 65, 0.55), 0 0 28px 6px rgba(243, 144, 65, 0.25);
+  transform: scale(1.06);
+}
+
+label.menu .info {
+  position: relative;
+  left: 50px;
+  top: 1px;
+}
+
+label.menu h2, label.menu h3 {
+  text-transform: uppercase;
+  margin: 0;
+  font-weight: 100;
+  letter-spacing: 2px;
+}
+
+label.menu h2 {
+  font-size: 11px;
+  opacity: 0.4;
+  margin-bottom: 4px;
+  transition: opacity 0.3s;
+}
+
+label.menu h3 {
+  font-size: 8px;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  opacity: 0.3;
+}
+
+label.menu h2 .pip {
+  width: 0;
+  height: 9px;
+  background: #fea082;
+  float: left;
+  position: relative;
+  top: 3px;
+  transition: all 0.3s;
+  margin-right: 0;
+}
+
+/* Colores de los "pips" del menú */
+label.menu.mercury h2 .pip { background: #E8927C; }
+label.menu.venus h2 .pip   { background: #b45d15; }
+label.menu.earth h2 .pip   { background: #26daaa; }
+label.menu.mars h2 .pip    { background: #e55f45; }
+label.menu.jupiter h2 .pip { background: orange; }
+label.menu.saturn h2 .pip  { background: #b29d81; }
+label.menu.uranus h2 .pip  { background: #8dcdd8; }
+label.menu.neptune h2 .pip { background: #4f83e2; }
+label.menu.pluto h2 .pip   { background: #FF8732; }
+
+/* Posicionamiento vertical del menú */
+label.menu:nth-of-type(1) { top: calc(50vh + 100px + (48px * 1) - 369px); }
+label.menu:nth-of-type(2) { top: calc(50vh + 100px + (48px * 2) - 369px); }
+label.menu:nth-of-type(3) { top: calc(50vh + 100px + (48px * 3) - 369px); }
+label.menu:nth-of-type(4) { top: calc(50vh + 100px + (48px * 4) - 369px); }
+label.menu:nth-of-type(5) { top: calc(50vh + 100px + (48px * 5) - 369px); }
+label.menu:nth-of-type(6) { top: calc(50vh + 100px + (48px * 6) - 369px); }
+label.menu:nth-of-type(7) { top: calc(50vh + 100px + (48px * 7) - 369px); }
+label.menu:nth-of-type(8) { top: calc(50vh + 100px + (48px * 8) - 369px); }
+label.menu:nth-of-type(9) { top: calc(50vh + 100px + (48px * 9) - 369px); }
+
+/* Thumbnails de los planetas en el menú */
+label.mercury > .preview { background: url("https://www.solarsystemscope.com/images/textures/full/2k_makemake_fictional.jpg") !important; }
+label.venus > .preview   { background: url("https://nasa3d.arc.nasa.gov/shared_assets/images/ven0aaa2/ven0aaa2-copy-428-321.jpg") !important; }
+label.earth > .preview   { background: url("https://img00.deviantart.net/04ef/i/2009/114/3/e/new_earth_texture_map_by_lightondesigns.jpg") !important; }
+label.mars > .preview    { background: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/217233/mars_texture.jpg") !important; }
+label.jupiter > .preview { background: url("https://www.jpl.nasa.gov/spaceimages/images/largesize/PIA07782_hires.jpg") !important; }
+label.saturn > .preview  { background: url("https://www.solarsystemscope.com/images/textures/full/2k_saturn.jpg") !important; }
+label.uranus > .preview  { background: url("https://img00.deviantart.net/957c/i/2017/165/4/9/uranus_texture_map_by_jcpag2010-db7yjwb.png") !important; }
+label.neptune > .preview { background: url("https://img00.deviantart.net/f068/i/2017/165/b/c/neptune_texture_map_by_jcpag2010-dbcjcv5.png") !important; }
+label.pluto > .preview   { background: url("https://pre00.deviantart.net/4677/th/pre/f/2015/314/4/e/pluto_map__2015_nov_10__by_snowfall_the_cat-d918tlb.png") !important; }
+
+/* Efecto al seleccionar un planeta del menú */
+input[type=radio][name=planet]:checked + label { opacity: 1; }
+input[type=radio][name=planet]:checked + label:before {
+  display: block; width: 4px; height: 4px; position: absolute; left: 2px; top: 2px;
+  z-index: 2; background: white; border-radius: 4px; content: "";
+}
+input[type=radio][name=planet]:checked + label > .info h2 { opacity: 1; }
+input[type=radio][name=planet]:checked + label > .info h2 .pip { width: 30px; margin-right: 66px; }
+input[type=radio][name=planet]:checked + label > .info h3 { opacity: 1; color: #fea082; }
+
+/* === HUD DE DETALLES PREMIUM (Gold & Dark) === */
+.panel-details.sci-fi {
+  position: fixed;
+  right: 66px;
+  top: 66px;
+  width: 388px;
+  background: rgba(11, 8, 32, 0.7); /* Oscuro semi-transparente */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 44px;
+  color: #fff;
+  z-index: 155;
+  overflow-y: auto;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+  transform: translateX(100%) scale(0.9); /* Oculto inicialmente por la derecha */
+  opacity: 0;
+
+  /* Marco Sci-Fi Angular con acento Dorado */
+  border: 1px solid rgba(243, 144, 65, 0.2);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.panel-details.sci-fi::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-right: 2px solid var(--cosmic-orange); /* Línea de resalte dorada */
+  pointer-events: none;
+}
+
+.panel-details.sci-fi.is-open {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+
+/* Ocultar barra de scroll para un look más limpio */
+.panel-details.sci-fi::-webkit-scrollbar {
+  display: none;
+}
+
+#details-planet-name {
+  font-size: 38px;
+  letter-spacing: 12px;
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+}
+
+.panel-header h2 {
+  font-size: 11px;
+  color: var(--cosmic-orange-soft);
+  margin: -5px 0 30px 4px;
+  font-weight: 300;
+}
+
+.panel-buttons {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.scifi-btn {
+  width: 100%;
+  padding: 16px 25px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.scifi-btn:hover {
+  background: rgba(243, 144, 65, 0.08); /* Hover dorado */
+  border-color: rgba(243, 144, 65, 0.4);
+  box-shadow: 0 0 15px rgba(243, 144, 65, 0.15);
+}
+
+.scifi-btn i.fa {
+  width: 20px;
+  color: var(--cosmic-orange);
+}
+
+.scifi-btn i.caret {
+  color: var(--cosmic-orange-soft);
+}
+
+.panel-footer {
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-around;
+  font-size: 10px;
+  gap: 10px;
+}
+
+.footer-icon-btn {
+  background: none;
+  border: 0;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-align: center;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.footer-icon-btn:hover {
+  opacity: 1;
+  color: #fff;
+}
+
+.footer-icon-btn.is-active {
+  color: var(--cosmic-orange);
+  opacity: 1;
+}
+
+.footer-icon-btn i {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+/* === MODALES DE AUTENTICACIÓN (LOGIN & REGISTRO) === */
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.auth-modal.is-open { opacity: 1; pointer-events: auto; }
+
+.auth-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(243, 144, 65, 0.18), transparent 60%), rgba(5, 4, 18, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.auth-modal__card {
+  position: relative;
+  width: min(420px, calc(100vw - 40px));
+  padding: 36px 32px 28px;
+  color: #fff;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  transform: translateY(14px) scale(0.98);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+.auth-modal.is-open .auth-modal__card { transform: translateY(0) scale(1); opacity: 1; }
+
+/* Efecto de resalte en el borde de la tarjeta */
+.auth-modal__card::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 35%, rgba(243, 144, 65, 0.08) 100%);
+  mix-blend-mode: overlay;
+}
+
+.auth-modal__close {
+  position: absolute; top: 12px; right: 14px; width: 32px; height: 32px;
+  border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.75); font-size: 20px; line-height: 1; cursor: pointer; transition: all 0.2s ease;
+}
+.auth-modal__close:hover { color: #fff; border-color: rgba(243, 144, 65, 0.6); box-shadow: 0 0 14px rgba(243, 144, 65, 0.35); }
+
+/* Cabecera del formulario */
+.auth-modal__header { margin-bottom: 22px; text-align: center; }
+.auth-modal__header h2 { margin: 0 0 8px; font-size: 18px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; }
+.auth-modal__header p { margin: 0; font-size: 12px; letter-spacing: 1px; color: rgba(255, 255, 255, 0.55); }
+
+/* Estilos de formulario y campos */
+.auth-form { display: flex; flex-direction: column; gap: 18px; }
+.auth-field { display: flex; flex-direction: column; gap: 6px; }
+.auth-field__label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255, 255, 255, 0.55); }
+.auth-field input {
+  width: 100%; padding: 8px 2px 10px; font: inherit; font-size: 14px; color: #fff;
+  background: transparent; border: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.18); outline: none; transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.auth-field input::placeholder { color: rgba(255, 255, 255, 0.3); }
+.auth-field input:focus { border-bottom-color: var(--cosmic-orange); box-shadow: 0 6px 14px -10px rgba(243, 144, 65, 0.9); }
+.auth-field input:focus + .auth-field__label, .auth-field:focus-within .auth-field__label { color: var(--cosmic-orange-soft); }
+
+/* Fila de opciones adicionales */
+.auth-form__row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-top: -4px; }
+.auth-check { display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.6); cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
+.auth-check input { accent-color: var(--cosmic-orange); }
+
+/* Botones y enlaces */
+.auth-link {
+  background: none; border: 0; padding: 0; font: inherit; font-size: 11px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--cosmic-orange-soft); cursor: pointer; text-decoration: none; transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.auth-link:hover { color: #fff; text-shadow: 0 0 10px rgba(243, 144, 65, 0.7); }
+
+.auth-submit {
+  margin-top: 6px; padding: 12px 18px; font: inherit; font-size: 12px; letter-spacing: 4px;
+  text-transform: uppercase; color: #fff; border: 1px solid rgba(243, 144, 65, 0.55); border-radius: 12px;
+  background: linear-gradient(135deg, var(--cosmic-orange) 0%, #d8651b 100%); cursor: pointer; box-shadow: 0 8px 24px rgba(243, 144, 65, 0.32);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.auth-submit:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 12px 30px rgba(243, 144, 65, 0.5); }
+.auth-submit:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(243, 144, 65, 0.45), 0 12px 30px rgba(243, 144, 65, 0.5); }
+
+/* Conmutador de formularios */
+.auth-switch { margin: 6px 0 0; text-align: center; font-size: 11px; letter-spacing: 1px; color: rgba(255, 255, 255, 0.5); }
+.auth-form-content { display: none; }
+.auth-form-content.is-active { display: block; animation: fadeInForm 0.5s ease; }
+
+@keyframes fadeInForm {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Evitar scroll en body cuando el modal está abierto */
+body.modal-open { overflow: hidden; }
+
+/* Media Queries para Mobile */
+@media (max-width: 480px) {
+  .top-nav { top: 16px; right: 16px; }
+  .nav-btn { padding: 8px 16px; font-size: 10px; }
+  .auth-modal__card { padding: 30px 22px 22px; }
+  .panel-details.sci-fi { right: 10px; width: calc(100vw - 120px); }
+}

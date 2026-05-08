@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Explorador del Sistema Solar | AAA WebGL</title>
+</head>
+<body>
+
+<div id="loading-screen" class="loading-screen">
+  <div class="loader-content">
+    <h1 class="logo">Explorador Solar<span>Calibrando motor de salto...</span></h1>
+    <div class="progress-bar-container">
+      <div id="loading-progress" class="progress-bar"></div>
+    </div>
+  </div>
+</div>
+
+<canvas id="webgl-canvas" style="position: fixed; top: 0; left: 0; z-index: -1;"></canvas>
+
+<nav class="top-nav" id="top-nav" aria-label="Cuenta">
+  <button class="nav-btn nav-btn--ghost" id="open-login" type="button">Entrar</button>
+  <button class="nav-btn nav-btn--cosmic" id="open-register" type="button">Registrarse</button>
+</nav>
+
+<h1 class='logo' id="main-logo">
+  Sistema Solar
+  <span>EXPLORADOR</span>
+</h1>
+
+<div class="planet-menu" id="planet-menu">
+  <input class='planet9' id='pluto' type='radio' name='planet'>
+  <label class='menu pluto' for='pluto'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Plutón</h2><h3>39,5 UA</h3></div>
+  </label>
+
+  <input class='planet8' id='neptune' type='radio' name='planet'>
+  <label class='menu neptune' for='neptune'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Neptuno</h2><h3>30,1 UA</h3></div>
+  </label>
+
+  <input class='planet7' id='uranus' type='radio' name='planet'>
+  <label class='menu uranus' for='uranus'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Urano</h2>    <h3>19,2 UA</h3></div>
+  </label>
+
+  <input class='planet6' id='saturn' type='radio' name='planet'>
+  <label class='menu saturn' for='saturn'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Saturno</h2>  <h3>9,6 UA</h3></div>
+  </label>
+
+  <input class='planet5' id='jupiter' type='radio' name='planet'>
+  <label class='jupiter menu' for='jupiter'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Júpiter</h2>  <h3>5,2 UA</h3></div>
+  </label>
+
+  <input class='planet4' id='mars' type='radio' name='planet'>
+  <label class='mars menu' for='mars'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Marte</h2>    <h3>1,5 UA</h3></div>
+  </label>
+
+  <input class='planet3' id='earth' type='radio' name='planet'>
+  <label class='menu earth' for='earth'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Tierra</h2>   <h3>1 UA</h3></div>
+  </label>
+
+  <input class='planet2' id='venus' type='radio' name='planet'>
+  <label class='menu venus' for='venus'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Venus</h2>    <h3>0,72 UA</h3></div>
+  </label>
+
+  <input class='planet1' id='mercury' type='radio' name='planet'>
+  <label class='menu mercury' for='mercury'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Mercurio</h2> <h3>0,39 UA</h3></div>
+  </label>
+</div>
+
+<div id="planet-details" class="panel-details sci-fi">
+  <div class="panel-header">
+    <h1 id="details-planet-name">TIERRA</h1>
+    <h2>PLANETA</h2>
+  </div>
+
+  <ul class="panel-buttons">
+    <li><button class="scifi-btn"><i class="fa fa-plane"></i> VISITA<i class="fa fa-caret-right caret"></i></button></li>
+    <li><button class="scifi-btn"><i class="fa fa-book"></i> ENCICLOPEDIA<i class="fa fa-caret-right caret"></i></button></li>
+    <li><button class="scifi-btn"><i class="fa fa-code-fork"></i> ESTRUCTURA<i class="fa fa-caret-right caret"></i></button></li>
+  </ul>
+
+  <div class="panel-footer">
+    <button class="footer-icon-btn" id="btn-back-orbit"><i class="fa fa-sun-o"></i> SISTEMA SOLAR</button>
+    <button class="footer-icon-btn is-active"><i class="fa fa-globe"></i> PLANETA</button>
+  </div>
+</div>
+
+<div id="auth-modal" class="auth-modal">
+  <div class="auth-modal__backdrop" id="auth-backdrop"></div>
+  <div class="auth-modal__card" id="auth-card">
+    <button class="auth-modal__close" id="close-auth">&times;</button>
+
+    <div id="login-form" class="auth-form-content is-active">
+      <div class="auth-modal__header">
+        <h2>Iniciar Sesión</h2>
+        <p>Accede a tu cuenta de Explorador</p>
+      </div>
+      <form class="auth-form">
+        <div class="auth-field">
+          <label for="login-email" class="auth-field__label">Email</label>
+          <input type="email" id="login-email" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="auth-field">
+          <label for="login-password" class="auth-field__label">Contraseña</label>
+          <input type="password" id="login-password" required>
+        </div>
+        <div class="auth-form__row">
+          <label class="auth-check">
+            <input type="checkbox"> Recordarme
+          </label>
+          <button type="button" class="auth-link">¿Olvidaste tu contraseña?</button>
+        </div>
+        <button type="submit" class="auth-submit nav-btn--cosmic">Entrar</button>
+        <p class="auth-switch">¿No tienes cuenta? <button type="button" class="auth-link" id="switch-to-register">Regístrate</button></p>
+      </form>
+    </div>
+
+    <div id="register-form" class="auth-form-content">
+      <div class="auth-modal__header">
+        <h2>Registrarse</h2>
+        <p>Crea tu cuenta de Explorador Solar</p>
+      </div>
+      <form class="auth-form">
+        <div class="auth-field">
+          <label for="reg-name" class="auth-field__label">Nombre Completo</label>
+          <input type="text" id="reg-name" placeholder="John Doe" required>
+        </div>
+        <div class="auth-field">
+          <label for="reg-email" class="auth-field__label">Email</label>
+          <input type="email" id="reg-email" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="auth-field">
+          <label for="reg-password" class="auth-field__label">Contraseña</label>
+          <input type="password" id="reg-password" required>
+        </div>
+        <label class="auth-check">
+          <input type="checkbox" required> Acepto los términos de servicio
+        </label>
+        <button type="submit" class="auth-submit nav-btn--cosmic">Crear Cuenta</button>
+        <p class="auth-switch">¿Ya tienes cuenta? <button type="button" class="auth-link" id="switch-to-login">Inicia Sesión</button></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"
+    }
+  }
+</script>
+<script type="module" src="js/data.js"></script>
+<script type="module" src="js/motor3d.js"></script>
+<script type="module" src="js/interaction.js"></script>
+<script type="module" src="js/auth.js"></script>
+</body>
+</html>
