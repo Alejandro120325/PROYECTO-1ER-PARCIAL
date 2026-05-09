@@ -30,7 +30,7 @@ const canvas = document.getElementById('webgl-canvas');
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 4000);
-camera.position.set(-180, 220, 480); // Vista cinemática general
+camera.position.set(-180, 220, 480); 
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -120,9 +120,7 @@ for (const [id, data] of Object.entries(planetDataConfig)) {
         map: textureLoader.load(`js/textures/${data.img}.jpg`),
         roughness: 0.85,
         metalness: 0.05,
-        // Tinte que multiplica la textura: blanco para la mayoría, tan oscuro para Saturno
         color: isSaturn ? new THREE.Color(0xa89878) : new THREE.Color(0xffffff),
-        // Emisiva sutil para que los planetas se vean en el lado oscuro
         emissive: new THREE.Color(0x222233),
         emissiveIntensity: isSaturn ? 0.10 : 0.25
     });
@@ -168,8 +166,6 @@ for (const [id, data] of Object.entries(planetDataConfig)) {
 }
 
 // --- CINTURÓN DE ASTEROIDES ---
-// Entre Marte (180) y Júpiter (260): banda principal
-// Más allá de Neptuno (470): banda dispersa tipo Kuiper
 function buildAsteroidBelt(count, innerR, outerR, ySpread, baseScale) {
     const asteroidGeo = new THREE.IcosahedronGeometry(0.5, 0);
     const asteroidMat = new THREE.MeshStandardMaterial({
@@ -360,8 +356,6 @@ function buildCutaway(planetId, baseRadius) {
 
     const group = new THREE.Group();
 
-    // Cuña recortada de 90°, centrada en la dirección de la cámara (+X, +Z aprox)
-    // phiStart = π, phiLength = 1.5π → cuña faltante centrada en phi=3π/4 (= dirección +X+Z normalizada)
     const phiStart = Math.PI;
     const phiLength = Math.PI * 1.5;
 
