@@ -1,8 +1,4 @@
 // public/js/config.js
-// Resuelve la URL base del API. Soporta tres escenarios:
-//   1. Mismo origen (Railway sirve frontend + API): API_BASE = ''
-//   2. Frontend separado (Vercel) + backend (Railway): se lee de <meta name="api-url">
-//   3. Override por window.API_URL (debug)
 export const API_BASE = (() => {
     if (typeof window !== 'undefined' && window.API_URL) return window.API_URL;
     const meta = document.querySelector('meta[name="api-url"]');
