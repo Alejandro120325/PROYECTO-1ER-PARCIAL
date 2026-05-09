@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (NUNCA subir a git)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+
+# Coverage
+coverage/
+
+# Vercel
+.vercel/

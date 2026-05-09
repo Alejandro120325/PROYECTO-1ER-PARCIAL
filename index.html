@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- URL del backend. Déjalo vacío si frontend y backend están en el mismo dominio (Railway).
+       Si despliegas el frontend en Vercel y el backend en Railway, pon aquí la URL del API:
+       <meta name="api-url" content="https://mi-backend.up.railway.app"> -->
+  <meta name="api-url" content="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
   <link rel="stylesheet" href="css/style.css">
   <title>Explorador del Sistema Solar | AAA WebGL</title>
@@ -84,23 +88,75 @@
     <div class='preview'></div>
     <div class='info'><h2><div class='pip'></div>Mercurio</h2> <h3>0,39 UA</h3></div>
   </label>
+
+  <input class='planet0' id='sun' type='radio' name='planet'>
+  <label class='menu sun' for='sun'>
+    <div class='preview'></div>
+    <div class='info'><h2><div class='pip'></div>Sol</h2> <h3>0 UA</h3></div>
+  </label>
 </div>
 
 <div id="planet-details" class="panel-details sci-fi">
-  <div class="panel-header">
-    <h1 id="details-planet-name">TIERRA</h1>
-    <h2>PLANETA</h2>
+  <!-- VISTA MENU PRINCIPAL -->
+  <div class="panel-view" data-view="menu">
+    <div class="panel-header">
+      <button class="panel-back" id="panel-back-menu" aria-label="Volver"><i class="fa fa-chevron-left"></i></button>
+      <h1 id="details-planet-name">TIERRA</h1>
+      <h2 id="details-planet-type">PLANETA</h2>
+    </div>
+
+    <ul class="panel-buttons">
+      <li><button class="scifi-btn" data-action="visit"><i class="fa fa-plane"></i> VISITA<i class="fa fa-caret-right caret"></i></button></li>
+      <li><button class="scifi-btn" data-action="encyclopedia"><i class="fa fa-book"></i> ENCICLOPEDIA<i class="fa fa-caret-right caret"></i></button></li>
+      <li><button class="scifi-btn" data-action="structure"><i class="fa fa-code-fork"></i> ESTRUCTURA<i class="fa fa-caret-right caret"></i></button></li>
+      <li><button class="scifi-btn scifi-btn--game" data-action="game"><i class="fa fa-gamepad"></i> MINIJUEGO<i class="fa fa-caret-right caret"></i></button></li>
+    </ul>
   </div>
 
-  <ul class="panel-buttons">
-    <li><button class="scifi-btn"><i class="fa fa-plane"></i> VISITA<i class="fa fa-caret-right caret"></i></button></li>
-    <li><button class="scifi-btn"><i class="fa fa-book"></i> ENCICLOPEDIA<i class="fa fa-caret-right caret"></i></button></li>
-    <li><button class="scifi-btn"><i class="fa fa-code-fork"></i> ESTRUCTURA<i class="fa fa-caret-right caret"></i></button></li>
-  </ul>
+  <!-- VISTA ENCICLOPEDIA -->
+  <div class="panel-view" data-view="encyclopedia" hidden>
+    <div class="panel-header">
+      <button class="panel-back" data-back="menu" aria-label="Volver"><i class="fa fa-chevron-left"></i></button>
+      <h1 class="enc-title" id="enc-planet-name">TIERRA</h1>
+      <h2 id="enc-planet-type">PLANETA</h2>
+    </div>
+    <h3 class="section-title">ENCICLOPEDIA</h3>
+    <table class="enc-table" id="enc-stats"></table>
+    <div class="enc-body" id="enc-body"></div>
+  </div>
+
+  <!-- VISTA ESTRUCTURA -->
+  <div class="panel-view" data-view="structure" hidden>
+    <div class="panel-header">
+      <button class="panel-back" data-back="menu" aria-label="Volver"><i class="fa fa-chevron-left"></i></button>
+      <h1 class="enc-title" id="struct-planet-name">TIERRA</h1>
+      <h2 id="struct-planet-type">PLANETA</h2>
+    </div>
+    <h3 class="section-title">ESTRUCTURA</h3>
+    <p class="struct-intro" id="struct-intro"></p>
+    <div class="struct-sections" id="struct-sections"></div>
+  </div>
 
   <div class="panel-footer">
     <button class="footer-icon-btn" id="btn-back-orbit"><i class="fa fa-sun-o"></i> SISTEMA SOLAR</button>
     <button class="footer-icon-btn is-active"><i class="fa fa-globe"></i> PLANETA</button>
+  </div>
+</div>
+
+<!-- OVERLAY DE ESTRUCTURA: etiquetas tipo "cutaway" sobre la escena 3D -->
+<div id="structure-overlay" class="structure-overlay" hidden>
+  <div class="struct-diagram" id="struct-diagram"></div>
+</div>
+
+<!-- MODAL DE MINIJUEGO -->
+<div id="game-modal" class="game-modal" hidden>
+  <div class="game-modal__backdrop" id="game-backdrop"></div>
+  <div class="game-modal__card">
+    <div class="game-modal__header">
+      <h2 id="game-title">MINIJUEGO</h2>
+      <button class="game-modal__close" id="game-close" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="game-modal__body" id="game-body"></div>
   </div>
 </div>
 
@@ -173,6 +229,7 @@
 </script>
 <script type="module" src="js/data.js"></script>
 <script type="module" src="js/motor3d.js"></script>
+<script type="module" src="js/games.js"></script>
 <script type="module" src="js/interaction.js"></script>
 <script type="module" src="js/auth.js"></script>
 </body>
