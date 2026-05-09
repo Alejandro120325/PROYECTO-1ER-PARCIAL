@@ -1,7 +1,4 @@
 // js/games.js
-// 10 minijuegos diferentes, uno por cada planeta + sol.
-// Cada juego se renderiza dentro de un contenedor dado y muestra un mensaje al ganar.
-
 const GAME_TITLES = {
     sun:     'EL SOL · Quiz Solar',
     mercury: 'MERCURIO · Esquiva Meteoritos',
@@ -575,11 +572,9 @@ function game_neptune(c) {
 
     const cx = 240, cy = 160, R = 110;
 
-    // Neptuno en el centro
     const neptune = el('div', 'neptune-center');
     arena.appendChild(neptune);
 
-    // SVG con la órbita y la zona de captura
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 480 320');
@@ -618,9 +613,8 @@ function game_neptune(c) {
     }
     repaintArc();
 
-    // Tritón (la luna retrógrada)
     let tritonAngle = Math.PI;
-    let tritonSpeed = -0.022; // negativo = retrógrado
+    let tritonSpeed = -0.022; 
 
     const triton = el('div', 'triton-moon');
     arena.appendChild(triton);
@@ -644,7 +638,6 @@ function game_neptune(c) {
             arena.classList.add('flash-success');
             setTimeout(() => arena.classList.remove('flash-success'), 250);
             if (captures >= 5) { endGame(true); return; }
-            // Reposicionar la ventana de captura y aumentar dificultad
             windowAngle = Math.random() * Math.PI * 2;
             windowSize = Math.max(Math.PI / 8, windowSize - Math.PI / 30);
             repaintArc();
@@ -670,7 +663,6 @@ function game_neptune(c) {
         const y = cy + Math.sin(tritonAngle) * R - 11;
         triton.style.left = x + 'px';
         triton.style.top = y + 'px';
-        // Resaltar Tritón cuando está en la ventana
         triton.classList.toggle('in-window', inWindow(tritonAngle));
         rafId = requestAnimationFrame(tick);
     }
@@ -688,7 +680,6 @@ function game_pluto(c) {
     const SIZE = 11;
     const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(''));
 
-    // Colocar palabras (horizontal, vertical o diagonal)
     function place(word) {
         const dirs = [[0, 1], [1, 0], [1, 1]];
         for (let attempt = 0; attempt < 100; attempt++) {
@@ -713,7 +704,6 @@ function game_pluto(c) {
     }
     const placed = words.map(place).filter(Boolean);
 
-    // Rellenar huecos
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let r = 0; r < SIZE; r++) {
         for (let cc = 0; cc < SIZE; cc++) {
