@@ -1,8 +1,5 @@
 // js/data.js
 
-// CENTRALIZACIÓN DE DATOS Y CONFIGURACIÓN DEL SISTEMA SOLAR
-// Datos basados en https://www.solarsystemscope.com/
-
 export const planetDataConfig = {
     mercury: {
         radius: 5.0,
@@ -11,7 +8,6 @@ export const planetDataConfig = {
         orbitSpeed: 4.15,
         rotSpeed: 0.004,
         descriptionTitle: 'MERCURIO',
-        // Inclinación visual (radianes) — variedad orbital
         inclination: 0.12,
         startAngle: 0.4
     },
@@ -100,7 +96,6 @@ export const planetDataConfig = {
 
 // =========================================================
 // ENCICLOPEDIA + ESTRUCTURA POR PLANETA
-// Fuente principal: solarsystemscope.com
 // =========================================================
 export const planetEncyclopedia = {
     sun: {
