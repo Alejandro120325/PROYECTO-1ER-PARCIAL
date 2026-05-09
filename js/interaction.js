@@ -178,10 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // =========================================================
-    // ESC: navegación universal hacia atrás
-    // Prioridad: minijuego → modal de login → vista interna del panel → overview
-    // =========================================================
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
 
@@ -200,13 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 3. Panel de detalles del planeta abierto
         const detailsPanel = document.getElementById('planet-details');
         if (detailsPanel && detailsPanel.classList.contains('is-open')) {
             const currentView = panel.querySelector('.panel-view:not([hidden])');
             const viewName = currentView?.dataset.view;
 
-            // 3a. Subvista (enciclopedia/estructura) → volver al menú del planeta
             if (viewName === 'encyclopedia' || viewName === 'structure') {
                 exitStructureView();
                 showView('menu');
@@ -215,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 3b. Menú del planeta → volver al sistema solar
             activePlanetId = null;
             structureOverlay.hidden = true;
             showView('menu');
