@@ -1,5 +1,4 @@
 // js/auth.js
-// Autenticación real contra /api/auth/* con persistencia en localStorage.
 import { apiFetch, session } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
