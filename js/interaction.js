@@ -10,6 +10,7 @@ import {
 } from './motor3d.js';
 import { planetDataConfig, planetEncyclopedia } from './data.js';
 import { openGame, closeGame } from './games.js';
+import { audio } from './audio.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const planetRadios = document.querySelectorAll('input[name="planet"]');
@@ -95,20 +96,36 @@ document.addEventListener('DOMContentLoaded', () => {
         diagram.appendChild(labels);
     }
 
-    // Selección de planeta o Sol desde el menú lateral
+    // Lógica común para seleccionar un planeta (sea por menú o clic en el canvas)
+    function selectPlanet(id) {
+        activePlanetId = id;
+        setHeaderName(activePlanetId);
+        showView('menu');
+        exitStructureView();
+        audio.sfxWhoosh();
+        if (activePlanetId === 'sun') {
+            zoomToSun();
+        } else {
+            zoomToPlanet(activePlanetId, 'overview');
+        }
+    }
+
+    // Selección desde el menú lateral
     planetRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (!e.target.checked) return;
-            activePlanetId = e.target.id;
-            setHeaderName(activePlanetId);
-            showView('menu');
-            exitStructureView();
-            if (activePlanetId === 'sun') {
-                zoomToSun();
-            } else {
-                zoomToPlanet(activePlanetId, 'overview');
-            }
+            selectPlanet(e.target.id);
         });
+    });
+
+    // Selección desde un clic directo sobre un planeta del canvas 3D (Raycaster)
+    document.addEventListener('planet-click', (e) => {
+        const id = e.detail?.id;
+        if (!id) return;
+        // Sincronizar el radio del menú lateral para que el estado visual coincida
+        const radio = document.getElementById(id);
+        if (radio) radio.checked = true;
+        selectPlanet(id);
     });
 
     // Volver al sistema solar
@@ -116,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBackOrbit) {
         btnBackOrbit.addEventListener('click', (e) => {
             e.preventDefault();
+            audio.sfxWhoosh();
             activePlanetId = null;
             structureOverlay.hidden = true;
             showView('menu');
@@ -129,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const actionBtn = e.target.closest('[data-action]');
         if (actionBtn && activePlanetId) {
             const action = actionBtn.dataset.action;
+            audio.sfxClick();
             if (action === 'visit') {
                 exitStructureView();
                 showView('menu');

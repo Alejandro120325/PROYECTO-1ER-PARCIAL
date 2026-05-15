@@ -1,4 +1,6 @@
 // js/games.js
+import { audio } from './audio.js';
+
 const GAME_TITLES = {
     sun:     'EL SOL · Quiz Solar',
     mercury: 'MERCURIO · Esquiva Meteoritos',
@@ -35,12 +37,14 @@ function showWin(container, msg) {
     const win = el('div', 'game-win');
     win.innerHTML = `<div class="game-win__title">¡EXCELENTE!</div><div class="game-win__msg">${msg}</div>`;
     container.appendChild(win);
+    audio.sfxWin();
 }
 
 function showLose(container, msg) {
     const lose = el('div', 'game-win game-win--lose');
     lose.innerHTML = `<div class="game-win__title">¡INTÉNTALO DE NUEVO!</div><div class="game-win__msg">${msg}</div>`;
     container.appendChild(lose);
+    audio.sfxLose();
 }
 
 // =========================================================
@@ -799,6 +803,7 @@ export function openGame(planetId) {
 
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add('is-open'));
+    audio.sfxWhoosh();
 }
 
 export function closeGame() {
@@ -807,6 +812,7 @@ export function closeGame() {
     if (currentBody && currentBody._cleanup) currentBody._cleanup();
     modal.classList.remove('is-open');
     setTimeout(() => { modal.hidden = true; if (currentBody) currentBody.innerHTML = ''; }, 300);
+    audio.sfxClick();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

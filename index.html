@@ -24,15 +24,17 @@
 
 <canvas id="webgl-canvas" style="position: fixed; top: 0; left: 0; z-index: -1;"></canvas>
 
+<!-- Botón de audio (música + SFX) — flotante abajo a la izquierda -->
+<button id="audio-toggle" class="audio-toggle is-muted" type="button" aria-label="Activar audio" title="Música y sonidos">
+  <i class="fa fa-volume-off"></i>
+</button>
+
 <nav class="top-nav" id="top-nav" aria-label="Cuenta">
   <button class="nav-btn nav-btn--ghost" id="open-login" type="button">Entrar</button>
   <button class="nav-btn nav-btn--cosmic" id="open-register" type="button">Registrarse</button>
 </nav>
 
-<h1 class='logo' id="main-logo">
-  Sistema Solar
-  <span>EXPLORADOR</span>
-</h1>
+<h1 class='logo' id="main-logo">SISTEMA SOLAR</h1>
 
 <div class="planet-menu" id="planet-menu">
   <input class='planet9' id='pluto' type='radio' name='planet'>
@@ -228,6 +230,7 @@
   }
 </script>
 <script type="module" src="js/data.js"></script>
+<script type="module" src="js/audio.js"></script>
 <script type="module" src="js/motor3d.js"></script>
 <script type="module" src="js/games.js"></script>
 <script type="module" src="js/interaction.js"></script>

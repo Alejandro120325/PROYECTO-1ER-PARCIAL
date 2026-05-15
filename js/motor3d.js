@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import gsap from 'gsap';
 import { planetDataConfig, planetEncyclopedia } from './data.js';
 
@@ -36,8 +37,25 @@ scene.add(camera);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.toneMapping = THREE.ReinhardToneMapping;
-renderer.toneMappingExposure = 1.6;
+// Tone mapping ACES para colores más vibrantes y naturales (mejor que Reinhard)
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+// Espacio de color sRGB para reproducción correcta de las texturas
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+// Filtrado anisotrópico máximo para texturas más nítidas en ángulos oblicuos
+const MAX_ANISO = renderer.capabilities.getMaxAnisotropy();
+
+// Renderer adicional para etiquetas HTML 2D (CSS2DRenderer)
+// Las etiquetas viven en un overlay <div> que no intercepta el mouse (pointer-events: none),
+// así el canvas sigue recibiendo eventos para raycaster y OrbitControls.
+const css2dRenderer = new CSS2DRenderer();
+css2dRenderer.setSize(window.innerWidth, window.innerHeight);
+css2dRenderer.domElement.style.position = 'fixed';
+css2dRenderer.domElement.style.top = '0';
+css2dRenderer.domElement.style.left = '0';
+css2dRenderer.domElement.style.pointerEvents = 'none';
+css2dRenderer.domElement.style.zIndex = '40';
+document.body.appendChild(css2dRenderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -48,11 +66,19 @@ controls.maxDistance = 1500;
 // --- FONDO ESTELAR ---
 const textureLoader = new THREE.TextureLoader(manager);
 
+// Helper: carga textura con anisotropía máxima y espacio de color sRGB (color maps)
+function loadColorTexture(path) {
+    const tex = textureLoader.load(path);
+    tex.anisotropy = MAX_ANISO;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+}
+
 const starGeo = new THREE.SphereGeometry(2500, 64, 64);
 const starMat = new THREE.MeshBasicMaterial({
-    map: textureLoader.load('js/textures/stars.jpg'),
+    map: loadColorTexture('js/textures/stars.jpg'),
     side: THREE.BackSide,
-    color: 0xaaaaaa
+    color: 0xddddff
 });
 const starMesh = new THREE.Mesh(starGeo, starMat);
 scene.add(starMesh);
@@ -69,18 +95,19 @@ const particlesMat = new THREE.PointsMaterial({ size: 1.2, color: 0xffffff, tran
 const particleMesh = new THREE.Points(particlesGeo, particlesMat);
 scene.add(particleMesh);
 
-// --- ILUMINACIÓN: más clara para que los planetas se vean mejor ---
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+// --- ILUMINACIÓN ---
+// Ambiente sutil para que el lado oscuro no quede totalmente negro
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
-// Luz solar principal (puntual, en el origen)
-const sunLight = new THREE.PointLight(0xffffee, 4.0, 3000, 1.2);
+// Luz solar principal: punto en el origen (el Sol), color cálido
+const sunLight = new THREE.PointLight(0xfff0d0, 5.0, 3000, 1.0);
 scene.add(sunLight);
 
-// Luz hemisférica para suavizar el lado oscuro
-scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1a1a2a, 0.35));
+// Luz hemisférica fría desde arriba para dar profundidad cromática
+scene.add(new THREE.HemisphereLight(0xbcd4ff, 0x1a1a2a, 0.45));
 
-// Luz frontal atada a la cámara para iluminar el planeta visitado
-const cameraLight = new THREE.PointLight(0xffffff, 1.4, 600);
+// Luz frontal atada a la cámara: ilumina el planeta visitado sin desaturar
+const cameraLight = new THREE.PointLight(0xffffff, 1.0, 600);
 camera.add(cameraLight);
 
 // --- SOL Y PLANETAS ---
@@ -90,51 +117,142 @@ const orbitLines = [];
 const planetGroup = new THREE.Group();
 scene.add(planetGroup);
 
-// Sol
+// =========================================================
+// MATERIAL DE ATMÓSFERA (glow Fresnel)
+// Crea un halo coloreado en el contorno del planeta — efecto wow
+// =========================================================
+function makeAtmosphereMesh(radius, atmConfig) {
+    const geo = new THREE.SphereGeometry(radius * (atmConfig.scale || 1.06), 64, 64);
+    const mat = new THREE.ShaderMaterial({
+        uniforms: {
+            uGlowColor: { value: new THREE.Color(atmConfig.color) },
+            uIntensity: { value: atmConfig.intensity ?? 1.0 }
+        },
+        vertexShader: /* glsl */`
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            void main() {
+                vec4 viewPos = modelViewMatrix * vec4(position, 1.0);
+                vNormal = normalize(normalMatrix * normal);
+                vViewDir = normalize(-viewPos.xyz);
+                gl_Position = projectionMatrix * viewPos;
+            }
+        `,
+        fragmentShader: /* glsl */`
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            uniform vec3 uGlowColor;
+            uniform float uIntensity;
+            void main() {
+                float fresnel = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), 2.5);
+                gl_FragColor = vec4(uGlowColor, fresnel * uIntensity);
+            }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+        depthWrite: false
+    });
+    return new THREE.Mesh(geo, mat);
+}
+
+// =========================================================
+// ETIQUETAS 2D FLOTANTES (CSS2DRenderer)
+// Cada planeta tiene un <div> que sigue su posición 3D.
+// Se almacenan en `labels` para hacer fade por distancia en el loop.
+// =========================================================
+const labels = []; // { id, element, mesh }
+
+function makeLabel(text, parentMesh, yOffset, extraClass = '') {
+    const div = document.createElement('div');
+    div.className = `planet-label ${extraClass}`.trim();
+    div.textContent = text;
+    const obj = new CSS2DObject(div);
+    obj.position.set(0, yOffset, 0);
+    parentMesh.add(obj);
+    labels.push({ element: div, mesh: parentMesh });
+    return obj;
+}
+
+// =========================================================
+// SOL — material emisivo brillante (no se ve afectado por luces)
+// =========================================================
 const sunGeo = new THREE.SphereGeometry(28, 64, 64);
 const sunMat = new THREE.MeshBasicMaterial({
-    map: textureLoader.load('js/textures/sun.jpg'),
+    map: loadColorTexture('js/textures/sun.jpg'),
     color: 0xffffff
 });
 const sun = new THREE.Mesh(sunGeo, sunMat);
 scene.add(sun);
 
-// Crear planetas dispersos en sus órbitas
+// Corona del Sol (halo doble: interior cálido + exterior amplio)
+const sunCorona = makeAtmosphereMesh(28, { color: 0xffd060, intensity: 1.6, scale: 1.18 });
+sun.add(sunCorona);
+const sunCoronaOuter = makeAtmosphereMesh(28, { color: 0xff8a2a, intensity: 0.8, scale: 1.45 });
+sun.add(sunCoronaOuter);
+
+// Etiqueta flotante del Sol
+makeLabel('SOL', sun, 28 * 1.6, 'planet-label--sun');
+
+// =========================================================
+// PLANETAS
+// =========================================================
+const atmospheres = []; // referencias por planeta para animar si hace falta
+
 for (const [id, data] of Object.entries(planetDataConfig)) {
-    // Contenedor de órbita: rota alrededor del sol
     const orbitContainer = new THREE.Object3D();
-
-    // Inclinación orbital realista (varía por planeta)
     orbitContainer.rotation.x = data.inclination ?? 0;
-
-    // Posición inicial en la órbita: NO alineados, cada uno en su propio punto
     orbitContainer.rotation.y = data.startAngle ?? Math.random() * Math.PI * 2;
-
     planetGroup.add(orbitContainer);
 
-    // Planeta físico
-    const geo = new THREE.SphereGeometry(data.radius, 64, 64);
-    // Ajustes por planeta: Saturno se ve demasiado claro por su textura crema + bloom
+    // Geometría del planeta con más segmentos para mejor silueta
+    const geo = new THREE.SphereGeometry(data.radius, 96, 96);
     const isSaturn = (id === 'saturn');
+
+    const colorMap = loadColorTexture(`js/textures/${data.img}.jpg`);
+
     const mat = new THREE.MeshStandardMaterial({
-        map: textureLoader.load(`js/textures/${data.img}.jpg`),
-        roughness: 0.85,
-        metalness: 0.05,
-        color: isSaturn ? new THREE.Color(0xa89878) : new THREE.Color(0xffffff),
-        emissive: new THREE.Color(0x222233),
-        emissiveIntensity: isSaturn ? 0.10 : 0.25
+        map: colorMap,
+        roughness: data.roughness ?? 0.85,
+        metalness: data.metalness ?? 0.05,
+        // Tinte: Saturno ligeramente apagado para que el bloom no lo blanquee
+        color: isSaturn ? new THREE.Color(0xb8a578) : new THREE.Color(0xffffff),
+        // Emisiva muy sutil que ilumina el lado oscuro sin desaturar el día
+        emissive: new THREE.Color(0x0a0a12),
+        emissiveIntensity: 0.6
     });
 
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.x = data.distance;
 
-    // Anillos de Saturno
+    // Atmósfera (glow) si está definida
+    if (data.atmosphere) {
+        const atm = makeAtmosphereMesh(data.radius, data.atmosphere);
+        mesh.add(atm);
+        atmospheres.push({ id, mesh: atm });
+    }
+
+    // Etiqueta flotante con el nombre del planeta en español
+    makeLabel(data.descriptionTitle, mesh, data.radius * 1.5 + 2);
+
+    // Anillos de Saturno con material PBR para mejor look
     if (data.hasRings) {
-        const ringGeo = new THREE.RingGeometry(data.radius * 1.4, data.radius * 2.3, 96);
+        const ringGeo = new THREE.RingGeometry(data.radius * 1.4, data.radius * 2.3, 128);
+        // Aplicar UVs radiales para que el degradado del anillo se vea bien
+        const pos = ringGeo.attributes.position;
+        const uv = ringGeo.attributes.uv;
+        const innerR = data.radius * 1.4;
+        const outerR = data.radius * 2.3;
+        for (let i = 0; i < pos.count; i++) {
+            const x = pos.getX(i);
+            const y = pos.getY(i);
+            const r = Math.sqrt(x * x + y * y);
+            uv.setXY(i, (r - innerR) / (outerR - innerR), 0.5);
+        }
         const ringMat = new THREE.MeshBasicMaterial({
-            color: 0xe8d4a8,
+            color: 0xf0d8a8,
             transparent: true,
-            opacity: 0.7,
+            opacity: 0.75,
             side: THREE.DoubleSide
         });
         const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -144,13 +262,13 @@ for (const [id, data] of Object.entries(planetDataConfig)) {
 
     orbitContainer.add(mesh);
 
-    // Línea de órbita visual sutil (anillo en el plano de la órbita)
-    const orbitGeo = new THREE.RingGeometry(data.distance - 0.15, data.distance + 0.15, 128);
+    // Línea de órbita visual: anillo fino que marca el camino del planeta
+    const orbitGeo = new THREE.RingGeometry(data.distance - 0.20, data.distance + 0.20, 256);
     const orbitMat = new THREE.MeshBasicMaterial({
-        color: 0x4a5a78,
+        color: 0x6a82b0,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.18
+        opacity: 0.32
     });
     const orbitLine = new THREE.Mesh(orbitGeo, orbitMat);
     orbitLine.rotation.x = Math.PI / 2;
@@ -201,9 +319,72 @@ scene.add(mainBelt);
 const kuiperBelt = buildAsteroidBelt(500, 540, 640, 8, 1.4);
 scene.add(kuiperBelt);
 
+// =========================================================
+// RAYCASTER — clic directo sobre planetas en el canvas 3D
+// El click dispara el mismo flujo cinematográfico que el menú lateral
+// =========================================================
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+
+// Meshes interactivos (Sol + cada planeta físico)
+const interactiveMeshes = [sun, ...Object.values(physicalPlanets)];
+
+// Mapa inverso mesh → id para identificar qué se cliqueó
+const meshToId = new Map();
+meshToId.set(sun, 'sun');
+for (const [id, mesh] of Object.entries(physicalPlanets)) {
+    meshToId.set(mesh, id);
+}
+
+function updateMouseFromEvent(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouseNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouseNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function pickPlanet() {
+    raycaster.setFromCamera(mouseNDC, camera);
+    const hits = raycaster.intersectObjects(interactiveMeshes, false);
+    if (hits.length === 0) return null;
+    return meshToId.get(hits[0].object) || null;
+}
+
+// HOVER: cambia el cursor a pointer cuando se pasa sobre un planeta
+renderer.domElement.addEventListener('mousemove', (event) => {
+    updateMouseFromEvent(event);
+    const id = pickPlanet();
+    renderer.domElement.style.cursor = id ? 'pointer' : 'default';
+});
+
+// CLIC: detectar si fue un clic real (no un drag de OrbitControls)
+let mouseDownPos = null;
+const CLICK_DRAG_THRESHOLD = 6; // píxeles de tolerancia
+
+renderer.domElement.addEventListener('mousedown', (event) => {
+    if (event.button !== 0) return; // solo botón izquierdo
+    mouseDownPos = { x: event.clientX, y: event.clientY };
+});
+
+renderer.domElement.addEventListener('mouseup', (event) => {
+    if (event.button !== 0 || !mouseDownPos) return;
+    const dx = event.clientX - mouseDownPos.x;
+    const dy = event.clientY - mouseDownPos.y;
+    const drag = Math.hypot(dx, dy);
+    mouseDownPos = null;
+    if (drag > CLICK_DRAG_THRESHOLD) return; // fue un arrastre, ignorar
+
+    updateMouseFromEvent(event);
+    const id = pickPlanet();
+    if (!id) return;
+
+    // Disparar evento — interaction.js lo escucha y aplica zoom + marca el radio del menú
+    document.dispatchEvent(new CustomEvent('planet-click', { detail: { id } }));
+});
+
 // --- POST-PROCESAMIENTO (BLOOM) ---
+// Ajustado para ACES: strength más bajo, radius más alto = halo amplio y suave
 const renderScene = new RenderPass(scene, camera);
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.5);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.85, 0.6, 0.35);
 const composer = new EffectComposer(renderer);
 composer.addPass(renderScene);
 composer.addPass(bloomPass);
@@ -503,24 +684,41 @@ export function zoomToSun(mode = 'overview') {
 function animate() {
     requestAnimationFrame(animate);
 
+    // El Sol siempre rota sobre sí mismo (no es un planeta que orbite)
     sun.rotation.y += 0.002;
     starMesh.rotation.y += 0.0001;
     particleMesh.rotation.y += 0.0002;
 
-    // Detener órbitas al acercarse (para que la cámara siga al planeta cómodamente)
-    if (!isZoomed) {
-        globalOrbitTime += 0.0008;
+    // ========== PAUSA GLOBAL AL VISITAR UN PLANETA ==========
+    // Cuando entras a cualquier planeta (isZoomed=true), TODO el sistema solar se congela:
+    // órbitas, rotación de planetas y cinturones de asteroides.
+    // Al volver al sistema solar (returnToOverview pone isZoomed=false) todo se reanuda
+    // exactamente desde donde quedó.
+    const systemRunning = !isZoomed;
+
+    if (systemRunning) {
+        // Velocidad orbital base: "lento pero visible". Mercurio da una vuelta en ~16s,
+        // la Tierra en ~70s. Las realciones entre planetas son realistas (orbitSpeed por planeta).
+        globalOrbitTime += 0.0016;
     }
 
     for (const [id, orbitContainer] of Object.entries(planets)) {
         const data = planetDataConfig[id];
         const startAngle = data.startAngle ?? 0;
-        // Movimiento orbital: cada planeta avanza desde su ángulo inicial
+        // Movimiento orbital: cada planeta sigue su anillo. Al congelarse el sistema,
+        // globalOrbitTime no avanza, así que rotation.y queda fijo en su última posición.
         orbitContainer.rotation.y = startAngle + globalOrbitTime * data.orbitSpeed;
-        // Rotación axial: pausada para el planeta enfocado para que se pueda observar tranquilo
-        if (!(isZoomed && id === currentPlanetId)) {
+
+        if (systemRunning) {
+            // Vista general: rotación axial con la velocidad propia del planeta
             physicalPlanets[id].rotation.y += data.rotSpeed;
+        } else if (id === currentPlanetId) {
+            // INSPECCIÓN: el planeta visitado queda quieto en su órbita
+            // pero sigue girando sobre su eje a una velocidad agradable y constante
+            // para que el usuario pueda observarlo desde todos los ángulos.
+            physicalPlanets[id].rotation.y += 0.0035;
         }
+        // El resto de planetas, mientras estamos en zoom, quedan totalmente quietos.
     }
 
     // Rotación lenta del cutaway si estamos en vista Estructura
@@ -528,14 +726,19 @@ function animate() {
         structureGroup.rotation.y += 0.0025;
     }
 
-    // Rotación muy lenta del cinturón de asteroides
-    if (mainBelt) mainBelt.rotation.y += 0.0003;
-    if (kuiperBelt) kuiperBelt.rotation.y += 0.00012;
+    // Cinturones de asteroides: rotan con el sistema, pausan al visitar un planeta
+    if (systemRunning) {
+        if (mainBelt) mainBelt.rotation.y += 0.0003;
+        if (kuiperBelt) kuiperBelt.rotation.y += 0.00012;
+    }
 
     cameraLight.position.copy(camera.position);
 
     controls.update();
     composer.render();
+    // Renderizado de las etiquetas 2D superpuestas en la misma cámara.
+    // Las etiquetas son siempre visibles (estilo en CSS).
+    css2dRenderer.render(scene, camera);
 }
 animate();
 
@@ -545,4 +748,5 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
+    css2dRenderer.setSize(window.innerWidth, window.innerHeight);
 });

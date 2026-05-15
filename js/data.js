@@ -9,7 +9,9 @@ export const planetDataConfig = {
         rotSpeed: 0.004,
         descriptionTitle: 'MERCURIO',
         inclination: 0.12,
-        startAngle: 0.4
+        startAngle: 0.4,
+        roughness: 0.95,
+        metalness: 0.05
     },
     venus: {
         radius: 9.0,
@@ -19,7 +21,10 @@ export const planetDataConfig = {
         rotSpeed: 0.001,
         descriptionTitle: 'VENUS',
         inclination: -0.06,
-        startAngle: 2.1
+        startAngle: 2.1,
+        roughness: 0.75,
+        metalness: 0.05,
+        atmosphere: { color: 0xffc880, intensity: 1.2, scale: 1.06 }
     },
     earth: {
         radius: 9.5,
@@ -29,7 +34,10 @@ export const planetDataConfig = {
         rotSpeed: 0.012,
         descriptionTitle: 'TIERRA',
         inclination: 0.0,
-        startAngle: 4.7
+        startAngle: 4.7,
+        roughness: 0.70,
+        metalness: 0.10,
+        atmosphere: { color: 0x4a9eff, intensity: 1.4, scale: 1.07 }
     },
     mars: {
         radius: 7.0,
@@ -39,7 +47,10 @@ export const planetDataConfig = {
         rotSpeed: 0.011,
         descriptionTitle: 'MARTE',
         inclination: 0.10,
-        startAngle: 1.2
+        startAngle: 1.2,
+        roughness: 0.92,
+        metalness: 0.05,
+        atmosphere: { color: 0xff8866, intensity: 0.5, scale: 1.04 }
     },
     jupiter: {
         radius: 24.0,
@@ -49,7 +60,10 @@ export const planetDataConfig = {
         rotSpeed: 0.025,
         descriptionTitle: 'JÚPITER',
         inclination: -0.04,
-        startAngle: 5.5
+        startAngle: 5.5,
+        roughness: 0.55,
+        metalness: 0.05,
+        atmosphere: { color: 0xffb070, intensity: 1.0, scale: 1.05 }
     },
     saturn: {
         radius: 21.0,
@@ -60,7 +74,10 @@ export const planetDataConfig = {
         descriptionTitle: 'SATURNO',
         hasRings: true,
         inclination: 0.08,
-        startAngle: 3.3
+        startAngle: 3.3,
+        roughness: 0.60,
+        metalness: 0.05,
+        atmosphere: { color: 0xffd890, intensity: 0.8, scale: 1.05 }
     },
     uranus: {
         radius: 14.0,
@@ -70,7 +87,10 @@ export const planetDataConfig = {
         rotSpeed: 0.014,
         descriptionTitle: 'URANO',
         inclination: -0.10,
-        startAngle: 0.9
+        startAngle: 0.9,
+        roughness: 0.50,
+        metalness: 0.10,
+        atmosphere: { color: 0x90e8ec, intensity: 1.3, scale: 1.06 }
     },
     neptune: {
         radius: 13.5,
@@ -80,7 +100,10 @@ export const planetDataConfig = {
         rotSpeed: 0.014,
         descriptionTitle: 'NEPTUNO',
         inclination: 0.05,
-        startAngle: 5.9
+        startAngle: 5.9,
+        roughness: 0.50,
+        metalness: 0.10,
+        atmosphere: { color: 0x4a8be0, intensity: 1.4, scale: 1.06 }
     },
     pluto: {
         radius: 3.5,
@@ -90,7 +113,9 @@ export const planetDataConfig = {
         rotSpeed: 0.003,
         descriptionTitle: 'PLUTÓN',
         inclination: 0.18,
-        startAngle: 2.7
+        startAngle: 2.7,
+        roughness: 0.90,
+        metalness: 0.05
     }
 };
 
